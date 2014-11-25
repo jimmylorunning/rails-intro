@@ -4,16 +4,24 @@
 %table#movies
   %thead
     %tr
-      %th Movie Title
+      -# how to refactor this? ugh haml!
+      - if (@current_sort=='title')
+        %th.hilite= header_sort_link("Movie Title", "title")
+      - else
+        %th= header_sort_link("Movie Title", "title")
       %th Rating
-      %th Release Date
+      - if (@current_sort=='release_date')
+        %th.hilite= header_sort_link("Release Date", "release_date")
+      - else
+        %th= header_sort_link("Release Date", "release_date")
       %th More Info
   %tbody
     - @movies.each do |movie|
       %tr
-        %td= movie.title 
+        %td= movie.title
         %td= movie.rating
         %td= movie.release_date
         %td= link_to "More about #{movie.title}", movie_path(movie)
 
 = link_to 'Add new movie', new_movie_path
+%div
