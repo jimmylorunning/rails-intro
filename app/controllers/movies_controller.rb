@@ -7,8 +7,11 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @movies = Movie.show_all(params[:sort])
+#    @movies = Movie.find_all(params[:sort], params[:ratings])
+    @movies = Movie.show_all params[:sort]
     @current_sort = params[:sort]
+    @ratings = params[:ratings]
+    @all_ratings = Movie.all_ratings
   end
 
   def new

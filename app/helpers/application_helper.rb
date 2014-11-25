@@ -9,4 +9,8 @@ module ApplicationHelper
 		return {}
 	end
 
+	def was_it_checked?(value)
+		value == "true"
+	end
+
 end
