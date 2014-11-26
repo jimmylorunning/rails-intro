@@ -9,9 +9,11 @@ module ApplicationHelper
 		return {}
 	end
 
-	def was_it_checked?(ratings, key)
+  # takes array of ratings and value
+  # returns true if value is in ratings
+	def was_it_checked?(ratings, value)
 		return false if ratings.nil?
-		ratings[key] == "true"
+		ratings.include? value
 	end
 
 end
