@@ -1,19 +1,9 @@
 class Movie < ActiveRecord::Base
   attr_accessible :title, :rating, :description, :release_date
 
-=begin
-  def self.show_all(sort)
-    if (sort)
-      return all order: "#{sort} ASC"
-    else
-      return all
-    end
-  end
-=end
-
   def self.find_all(sort, ratings)
   	find_hash = {:conditions => {:rating => ratings||all_ratings}}
-  	if (sort)
+  	if valid_sort?(sort)
   		find_hash[:order] = "#{sort} ASC"
   	end
   	return find(:all, find_hash)
@@ -43,9 +33,14 @@ class Movie < ActiveRecord::Base
 	end
 
 	def self.all_ratings_hash
-		# return ratings_array_to_hash(all_ratings)
-		return {'G' => 'true', 'PG' => 'true', 'PG-13' => 'true', 'R' => 'true'}
+		return ratings_array_to_hash(all_ratings)
 	end
+
+	private
+	  def self.valid_sort?(sort)
+			 return false if !sort
+			 ['title', 'release_date'].include? sort
+	  end
 
 
 end

@@ -9,52 +9,39 @@ class MoviesController < ApplicationController
   end
 
   def index
+    forget = params.nil? ? false : params[:forget] == "true"
+    session.clear if forget
+
+    # make sure the data coming in is in right format or nil if not present
     session_ratings = (session[:rpsession].nil? || session[:rpsession][:ratings].nil?) ? nil : session[:rpsession][:ratings]
     session_sort = (session[:rpsession].nil? || session[:rpsession][:sort].nil?) ? nil : session[:rpsession][:sort]
     param_ratings = params.nil? ? nil : Movie.selected_ratings(params[:ratings])
     param_sort = params.nil? ? nil : params[:sort]
-#    debugger
 
+    # ratings is not specified in either session or params
     if (session_ratings.nil? && param_ratings.nil?)
       redirect_hash = {controller: 'movies', action: 'index', ratings: Movie.all_ratings_hash}
       redirect_hash[:sort] = (param_sort || session_sort)
+      session[:rpsession] = {}
+      flash.keep
       redirect_to redirect_hash
-    elsif (param_ratings)
+    elsif (param_ratings)  # ratings specified in params
       session[:rpsession][:ratings] = param_ratings
-      session[:rpsession][:sort] = param_sort
-    else
+      session[:rpsession][:sort] = param_sort if !param_sort.nil?
+    else # ratings remembered from session
       redirect_hash = {controller: 'movies', action: 'index', ratings: Movie.ratings_array_to_hash(session_ratings)}
       redirect_hash[:sort] = (param_sort || session_sort)
+      flash.keep
       redirect_to redirect_hash
     end
 
-# so WHENEVER ratings is not specified in either session or params
-# i.e. if (sessions.nil? || sessions[r].nil?) && (params.nil? || params[r].nil?)
-  # sort = calc_sort()
-  # redirect to index?ratings=all&sort b/c ratings not set...
-# otherwise: ratings is set somewhere, so if !params[r].nil?
-  # set session[r&s] = params[r&s]
-  # render page
-# otherwise: ratings is set in session, but not in params, URI needs to be updated
-  # sort = calc_sort()
-  # redirect to index?ratings=session[r]&sort
-
-# write a function that calculates sort
-# def calc_sort()
-  # if params[:sort] exists, sort = params[:sort]
-  # elsif session[:sort] exists, sort = session[:sort]
-  # else no sort
-# end
-
-
-    # to do: change the rest of these variables to work with session instead of params
+    # question: when session is empty, do we want to redirect to ratings=all checked? or just leave URI as /movies
+    # but render all boxes checked?
 
     @movies = Movie.find_all(session[:rpsession][:sort], session[:rpsession][:ratings])
-#    @movies = Movie.show_all params[:sort]
     @current_sort = session[:rpsession][:sort]
     @ratings = session[:rpsession][:ratings]
     @all_ratings = Movie.all_ratings
-    @s = session[:rpsession] # for debug purposes, remove later
   end
 
   def new
