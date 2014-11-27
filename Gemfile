@@ -10,8 +10,15 @@ gem 'rails', '3.2.18'
 group :development, :test do
   gem 'sqlite3'
   gem 'debugger'
+  gem 'rspec-rails'
 end
 
+group :test do
+	gem 'cucumber-rails', :require => false
+  gem 'cucumber'
+  gem 'capybara'
+  gem 'database_cleaner'
+end
 
 group :production do
   gem 'pg'
@@ -20,7 +27,7 @@ end
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do
-  gem 'therubyracer'              
+  gem 'therubyracer'
   gem 'sass-rails'
   gem 'coffee-rails'
   gem 'uglifier'
