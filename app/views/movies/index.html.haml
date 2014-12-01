@@ -5,7 +5,7 @@
   Include:
   - @all_ratings.each do |rating|
     = rating
-    = check_box_tag("ratings[#{rating}]", "1", was_it_checked?(@ratings, rating), {:id => "ratings_#{rating}"})
+    = check_box_tag("ratings[#{rating}]", 1, was_it_checked?(@current_ratings, rating), {:id => "ratings_#{rating}"})
   = submit_tag 'Refresh', :id => 'ratings_submit'
 
 %table#movies
@@ -25,4 +25,4 @@
 
 = link_to 'Add new movie', new_movie_path
 |
-= link_to 'Forget sessions', movies_path({forget: "true"})
+= link_to 'Forget sessions', movies_path({forget: 1})

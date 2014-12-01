@@ -1,5 +1,3 @@
-require 'debugger'
-
 class MoviesController < ApplicationController
 
   def show
@@ -9,54 +7,36 @@ class MoviesController < ApplicationController
   end
 
   def index
-    forget = params.nil? ? false : params[:forget] == "true"
-    session.clear if forget
+    s = SessionsHelper.new(session)
+    s.forget if params.nil? ? false : params[:forget] == '1'
 
-    # make sure the data coming in is in right format or nil if not present
-#    session_ratings = (session[:rpsession].nil? || session[:rpsession][:ratings].nil?) ? nil : session[:rpsession][:ratings]
-#    session_sort = (session[:rpsession].nil? || session[:rpsession][:sort].nil?) ? nil : session[:rpsession][:sort]
-    sess = Filter.new(session[:rpsession])
-    param_ratings = params.nil? ? nil : Movie.selected_ratings(params[:ratings])
-    param_sort = params.nil? ? nil : params[:sort]
-#    par = ParamFilter.new(params)
+    param = {}
+    param[:ratings] = params.nil? ? nil : Movie.valid_ratings(params_to_array(params[:ratings]))
+    param[:sort] = params.nil? ? nil : params[:sort]
 
-#    debugger
-
-    # ratings is not specified in either session or params
-    if (sess.ratings.nil? && param_ratings.nil?)
-      redirect_hash = {controller: 'movies', action: 'index', ratings: Movie.all_ratings_hash}
-      redirect_hash[:sort] = (param_sort || sess.sort)
-      session[:rpsession] = {}
+    # REDIRECT in either of these cases:
+    # 1. ratings is not specified in either session or params
+    if (s._ratings.nil? && param[:ratings].nil?)
       flash.keep
-#      debugger
-      redirect_to redirect_hash
-    elsif (param_ratings)  # ratings specified in params
-      session[:rpsession][:ratings] = param_ratings
-      session[:rpsession][:sort] = param_sort if !param_sort.nil?
-#      debugger
-    else # ratings remembered from session
-      redirect_hash = {controller: 'movies', action: 'index', ratings: Movie.ratings_array_to_hash(sess.ratings)}
-      redirect_hash[:sort] = (param_sort || sess.sort)
+      redirect_to controller: 'movies', action: 'index',
+        ratings: to_params_hash(Movie.all_ratings),
+        sort: (param[:sort] || s._sort)
+    elsif (!param[:ratings]) # 2. ratings not specified in params, but remembered from session
       flash.keep
-#      debugger
-      redirect_to redirect_hash
+      redirect_to controller: 'movies', action: 'index',
+        ratings: to_params_hash(Movie.valid_ratings(s._ratings)),
+        sort: (param[:sort] || s._sort)
     end
 
-    # question: when session is empty, do we want to redirect to ratings=all checked? or just leave URI as /movies
-    # but render all boxes checked?
-
-    @movies = Movie.find_all(session[:rpsession][:sort], session[:rpsession][:ratings])
-    @current_sort = session[:rpsession][:sort]
-    @ratings = session[:rpsession][:ratings]
+    s._ratings = param[:ratings]
+    s._sort = param[:sort] if !param[:sort].nil?
+    @movies = Movie.find_all(s._sort, s._ratings)
+    @current_sort = s._sort
+    @current_ratings = s._ratings
     @all_ratings = Movie.all_ratings
   end
 
   def new
-    # default: render 'new' template
-      redirect_to :controller => 'movies',
-        :action => 'index',
-        :sort => session[:rpsession][:sort],
-        :ratings => Movie.all_ratings_hash
   end
 
   def create
@@ -83,33 +63,4 @@ class MoviesController < ApplicationController
     redirect_to movies_path
   end
 
-end
-
-class Filter
-  attr_reader :ratings
-  attr_reader :sort
-
-  def initialize(filter_array)
-    ratings = filter_array.nil? ? nil : filter_array[:ratings]
-    sort = filter_array.nil? ? nil : filter_array[:sort]
-  end
-
-  private
-    def ratings=(r)
-      @ratings = r
-    end
-
-    def sort=(s)
-      @sort = s
-    end
-end
-
-
-# I think these classes are not able to access the Movie class... or if it is, it's not working...
-class ParamFilter < Filter
-  def ratings=(r)
-#    debugger
-    @ratings = Movie.selected_ratings(r)
-#    debugger
-  end
 end
